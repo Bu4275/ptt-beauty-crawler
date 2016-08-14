@@ -2,11 +2,11 @@
 import requests
 import re
 import os
-
 from bs4 import BeautifulSoup
 
 
 def download_img(url, save_fullname, is_overwirte=False):
+    # save a image to local disk
     if os.path.exists(save_fullname) and (not is_overwirte):
         return
 
@@ -25,6 +25,7 @@ def download_img(url, save_fullname, is_overwirte=False):
 
 
 def get_img_urls_artical(artical_url):
+    # get image url list from a artical
     read_until_str = u'※ 發信站: 批踢踢實業坊(ptt.cc)'
     r = requests.get(artical_url)
 
@@ -34,32 +35,28 @@ def get_img_urls_artical(artical_url):
         print 'Maybe 404 - Not Found.'
         return False
 
-    """
     img_pattern = re.compile(
-        'a href="(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}\.jpg|www\.[^\s]+\.[^\s]{2,}\.jpg)"')
-    """
-    img_pattern2 = re.compile(
         '"//(i\.imgur\.com\/[\w\/.]+(?:jpg|png))"')
-    # img [$alt=" ]{,7}src="//(i\.imgur\.com\/[\w\/.]+(?:jpg|png))"
     imgur_pattern = re.compile(
         'a href="(https?:\/\/imgur\.com\/[\w\/]+)"')
 
     # get each img_url in articals
     img_url_list = []
-    for img_url in re.findall(img_pattern2, html_text):
+    for img_url in re.findall(img_pattern, html_text):
         img_url_list.append('https://' + img_url)
 
     # enter imgur website to search images
     imgur_urls = re.findall(imgur_pattern, html_text)
     for imgur_url in imgur_urls:
         r = requests.get(imgur_url)
-        img_url = re.findall(img_pattern2, r.text)
+        img_url = re.findall(img_pattern, r.text)
         if img_url:
             img_url_list.append('http://%s' % img_url[0])
     return img_url_list
 
 
 def artical_img_download(artical_url):
+    # download all images in a artical
     global save_folder
 
     img_url_list = get_img_urls_artical(artical_url)
@@ -72,8 +69,8 @@ def artical_img_download(artical_url):
             pass
 
 
-
 def page_img_download(url = 'https://www.ptt.cc/bbs/Beauty/index1908.html'):
+    # download all images in a index page
     global domain
 
     r = requests.get(url)
@@ -94,21 +91,8 @@ def page_img_download(url = 'https://www.ptt.cc/bbs/Beauty/index1908.html'):
     print '==================================='
 
 
-def test_get_img_urls_artical():
-    # need to enter imgur.com
-    img_url_list = get_img_urls_artical('https://www.ptt.cc/bbs/Beauty/M.1470838446.A.47E.html')
-    assert img_url_list == ['http://i.imgur.com/QVZU6Gq.jpg']
-
-    img_url_list = get_img_urls_artical('https://www.ptt.cc/bbs/Beauty/M.1470926074.A.FB9.html')
-    assert img_url_list == ['http://i.imgur.com/F7rzTjT.jpg']
-
-    # normal cases
-    img_url_list = get_img_urls_artical('https://www.ptt.cc/bbs/Beauty/M.1470842030.A.3C0.html')
-    assert img_url_list == [u'https://i.imgur.com/AwZKag5.jpg', u'https://i.imgur.com/W3QbWFW.jpg',
-                            u'https://i.imgur.com/nrkmWGn.jpg', u'https://i.imgur.com/bo8kVkR.jpg']
-    print '[get_img_urls_artical] ok!'
-
 def auto_crawler(start_no, end_no):
+    # download all images range from start page_no to end page_no
     # https://www.ptt.cc/bbs/Beauty/<no._here>.html
     for i in xrange(start_no, end_no+1):
         url = '%s%s/index%s.html' % (domain, board, str(i))
@@ -122,6 +106,9 @@ domain = 'https://www.ptt.cc'
 board = '/bbs/Beauty'
 
 if __name__ == '__main__':
+    # Download image from pages
     auto_crawler(1880, 1889)
-    # test_get_img_urls_artical()
+
+    # Download from a artical
+    # artical_img_download('https://www.ptt.cc/bbs/Beauty/M.1471066567.A.F66.html')
     pass
