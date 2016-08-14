@@ -3,6 +3,8 @@ import requests
 import re
 import os
 from bs4 import BeautifulSoup
+from Queue import Queue, Empty
+from threading import Thread
 
 
 def download_img(url, save_fullname, is_overwirte=False):
@@ -57,16 +59,34 @@ def get_img_urls_artical(artical_url):
 
 def artical_img_download(artical_url):
     # download all images in a artical
+    global thread_num
     global save_folder
+    def multi_downloader(save_folder):
+        def run():
+            try:
+                while True:
+                    url = q.get_nowait()
+                    try:
+                        download_img(url, os.path.join(save_folder, os.path.basename(url)))
+                    except ValueError as err:
+                        print err
+            except Empty:
+                pass
+        return run
 
     img_url_list = get_img_urls_artical(artical_url)
-    # download images
-    for img_url in img_url_list:
-        try:
-            download_img(img_url, os.path.join(save_folder,
-                         os.path.basename(artical_url) +' ' + os.path.basename(img_url)))
-        except ValueError as valerr:
-            pass
+
+    d = multi_downloader(save_folder)
+    q = Queue()
+    workers = []
+    map(q.put, img_url_list)
+    for i in xrange(thread_num):
+        worker = Thread(target=d)
+        worker.start()
+        workers.append(worker)
+
+    for worker in workers:
+        worker.join()
 
 
 def page_img_download(url = 'https://www.ptt.cc/bbs/Beauty/index1908.html'):
@@ -101,13 +121,14 @@ def auto_crawler(start_no, end_no):
 
 
 # settings
+thread_num = 8
 save_folder = r'D:\pic'
 domain = 'https://www.ptt.cc'
 board = '/bbs/Beauty'
 
 if __name__ == '__main__':
     # Download image from pages
-    auto_crawler(1880, 1889)
+    auto_crawler(1879, 1880)
 
     # Download from a artical
     # artical_img_download('https://www.ptt.cc/bbs/Beauty/M.1471066567.A.F66.html')
