@@ -7,4 +7,4 @@ requests
 beautifulsoup4
 
 ##Demo
-![image](https://github.com/Bu4275/ptt-beauty-crawler/blob/master/demo.png)
+![image](https://github.com/Bu4275/ptt-beauty-crawler/blob/master/demo.PNG)
