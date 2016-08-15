@@ -12,7 +12,7 @@ def download_img(url, save_fullname, is_overwirte=False):
     if os.path.exists(save_fullname) and (not is_overwirte):
         return
 
-    r = requests.get(url)
+    r = requests.get(url, stream=True)
     if 'image' not in r.headers['Content-Type']:
         raise ValueError('is not image')
 
@@ -67,7 +67,9 @@ def artical_img_download(artical_url):
                 while True:
                     url = q.get_nowait()
                     try:
-                        download_img(url, os.path.join(save_folder, os.path.basename(url)))
+                        download_img(url, os.path.join(save_folder, 
+                                                       os.path.basename(artical_url) +
+                                                       ' ' + os.path.basename(url)))
                     except ValueError as err:
                         print err
             except Empty:
@@ -128,8 +130,8 @@ board = '/bbs/Beauty'
 
 if __name__ == '__main__':
     # Download image from pages
-    auto_crawler(1879, 1880)
-
+    # auto_crawler(1879, 1880)
+    page_img_download()
     # Download from a artical
     # artical_img_download('https://www.ptt.cc/bbs/Beauty/M.1471066567.A.F66.html')
     pass
