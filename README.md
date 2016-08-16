@@ -2,7 +2,11 @@
 ## Environment
 python 2.7.12
 
-## Dependency
+## Dependencies
+Setup dependencies
+
+        python setup.py install
+
 requests
 
 beautifulsoup4
