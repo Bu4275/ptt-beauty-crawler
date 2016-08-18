@@ -2,8 +2,9 @@
 import requests
 import re
 import os
+from os.path import basename
 from bs4 import BeautifulSoup
-from Queue import Queue, Empty
+from queue import Queue, Empty
 from threading import Thread
 
 
@@ -20,8 +21,8 @@ def download_img(url, save_fullname, is_overwirte=False):
         os.makedirs(os.path.dirname(save_fullname))
 
     if r.status_code == 200:
-        print '[Download] %s \tto %s' % (url, save_fullname)
-        with open(save_fullname , 'wb') as f:
+        print('[Download] %s \tto %s' % (url, save_fullname))
+        with open(save_fullname, 'wb') as f:
             for chunk in r.iter_content(1024):
                 f.write(chunk)
 
@@ -33,8 +34,8 @@ def get_img_urls_artical(artical_url):
 
     try:
         html_text = r.text[:r.text.index(read_until_str)]
-    except ValueError as valerr:
-        print 'Maybe 404 - Not Found.'
+    except ValueError:
+        print('Maybe 404 - Not Found.')
         return False
 
     img_pattern = re.compile(
@@ -61,17 +62,19 @@ def artical_img_download(artical_url):
     # download all images in a artical
     global thread_num
     global save_folder
+
     def multi_downloader(save_folder):
         def run():
             try:
                 while True:
                     url = q.get_nowait()
                     try:
-                        download_img(url, os.path.join(save_folder, 
-                                                       os.path.basename(artical_url) +
-                                                       ' ' + os.path.basename(url)))
+                        download_img(url,
+                                     os.path.join(save_folder,
+                                                  basename(artical_url) +
+                                                  ' ' + basename(url)))
                     except ValueError as err:
-                        print err
+                        print(err)
             except Empty:
                 pass
         return run
@@ -79,10 +82,13 @@ def artical_img_download(artical_url):
     img_url_list = get_img_urls_artical(artical_url)
 
     d = multi_downloader(save_folder)
-    q = Queue()
+    q = Queue(100)
+    for url in img_url_list:
+        q.put(url)
+
     workers = []
-    map(q.put, img_url_list)
-    for i in xrange(thread_num):
+    # map(q.put, img_url_list)
+    for i in range(thread_num):
         worker = Thread(target=d)
         worker.start()
         workers.append(worker)
@@ -91,13 +97,13 @@ def artical_img_download(artical_url):
         worker.join()
 
 
-def page_img_download(url = 'https://www.ptt.cc/bbs/Beauty/index1908.html'):
+def page_img_download(url='https://www.ptt.cc/bbs/Beauty/index1908.html'):
     # download all images in a index page
     global domain
 
     r = requests.get(url)
     soup = BeautifulSoup(r.text, "html.parser")
-    articals = soup.find_all('div', attrs={"class":"title"})
+    articals = soup.find_all('div', attrs={"class": "title"})
 
     # each artical
     for art in articals:
@@ -105,20 +111,20 @@ def page_img_download(url = 'https://www.ptt.cc/bbs/Beauty/index1908.html'):
             continue
 
         artical_url = domain + art.a['href']
-        print 'Title:', art.a.contents[0]
-        print 'Url:', artical_url
+        print('Title:', art.a.contents[0])
+        print('Url:', artical_url)
 
         artical_img_download(artical_url)
 
-    print '==================================='
+    print('===================================')
 
 
 def auto_crawler(start_no, end_no):
     # download all images range from start page_no to end page_no
     # https://www.ptt.cc/bbs/Beauty/<no._here>.html
-    for i in xrange(start_no, end_no+1):
+    for i in range(start_no, end_no + 1):
         url = '%s%s/index%s.html' % (domain, board, str(i))
-        print url
+        print(url)
         page_img_download(url)
 
 

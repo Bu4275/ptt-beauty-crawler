@@ -1,15 +1,15 @@
 # ptt-beauty-crawler
 ## Environment
-python 2.7.12
+- python 3.5.2
 
 ## Dependencies
-Setup dependencies
+Setup dependencies:
 
         python setup.py install
 
-requests
+- requests
 
-beautifulsoup4
+- beautifulsoup4
 
 ##Demo
 ![image](https://github.com/Bu4275/ptt-beauty-crawler/blob/master/demo.PNG)
